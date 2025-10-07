@@ -62,7 +62,7 @@ jobs:
       - name: Deploy Prometheus Stack
         run: |
           helm upgrade --install prometheus-stack \
-            grafana/kube-prometheus-stack \
+            prometheus-community/kube-prometheus-stack \
             -f ./tmp-prometheus-kube-stack-values.yml \
             -n monitoring \
             --create-namespace
