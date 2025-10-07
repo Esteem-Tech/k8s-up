@@ -49,7 +49,7 @@ jobs:
       - name: Inject secrets into Helm values
         env:
           GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
-          ENV: ${{ github.job.environment }}
+          SUB_DOMAIN: grafana-dev
         run: |
           # Install envsubst if missing
           sudo apt-get update && sudo apt-get install -y gettext-base

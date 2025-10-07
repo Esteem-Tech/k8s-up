@@ -57,7 +57,7 @@ grafana:
     tls:
       - secretName: wildcard-tls-secret
         hosts:
-          - grafana-${ENV}.k8s.iradukunda.me
+          - grafana-${SUB_DOMAIN}.k8s.iradukunda.me
   sidecar:
     dashboards:
       enabled: true
