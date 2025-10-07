@@ -42,7 +42,7 @@ kubeStateMetrics:
 grafana:
   enabled: true
   adminUser: admin
-  adminPassword: ${GRAFANA_ADMIN_PASSWORD}
+  adminPassword: "${GRAFANA_ADMIN_PASSWORD}"
   persistence:
     enabled: true
     size: 5Gi
@@ -53,11 +53,11 @@ grafana:
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
     hosts:
-      - ${SUB_DOMAIN}.k8s.iradukunda.me
+      - "${SUB_DOMAIN}.k8s.iradukunda.me"
     tls:
       - secretName: wildcard-tls-secret
         hosts:
-          - ${SUB_DOMAIN}.k8s.iradukunda.me
+          - "${SUB_DOMAIN}.k8s.iradukunda.me"
   sidecar:
     dashboards:
       enabled: true
