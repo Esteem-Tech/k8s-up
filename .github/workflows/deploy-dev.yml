@@ -55,7 +55,7 @@ jobs:
 
           # Create temporary files with substituted values
           envsubst < ./k8s/helm/prometheus-kube-stack-values.yml > ./tmp-prometheus-values.yml
-          envsubst < ./k8s/helm/loki-values.yaml > ./tmp-loki-values.yaml
+          envsubst < ./k8s/helm/loki-values.yml > ./tmp-loki-values.yml
           
       # 6️⃣ Deploy Prometheus + kube-prometheus-stack
       - name: Deploy Prometheus Stack
@@ -71,5 +71,5 @@ jobs:
         run: |
           helm upgrade --install loki-stack \
             grafana/loki-stack \
-            -f ./tmp-loki-values.yaml \
+            -f ./tmp-loki-values.yml \
             -n monitoring
