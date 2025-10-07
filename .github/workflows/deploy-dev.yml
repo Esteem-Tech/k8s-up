@@ -54,15 +54,15 @@ jobs:
           sudo apt-get update && sudo apt-get install -y gettext-base
 
           # Create temporary files with substituted values
-          envsubst < ./helm/prometheus-kube-stack-values.yml > ./helm/tmp-prometheus-values.yml
-          envsubst < ./helm/loki-values.yaml > ./helm/tmp-loki-values.yaml
+          envsubst < ./k8s/helm/prometheus-kube-stack-values.yml > ./tmp-prometheus-values.yml
+          envsubst < ./k8s/helm/loki-values.yaml > ./tmp-loki-values.yaml
           
       # 6️⃣ Deploy Prometheus + kube-prometheus-stack
       - name: Deploy Prometheus Stack
         run: |
           helm upgrade --install prometheus-stack \
             grafana/kube-prometheus-stack \
-            -f ./k8s/helm/tmp-prometheus-kube-stack-values.yml \
+            -f ./tmp-prometheus-kube-stack-values.yml \
             -n monitoring \
             --create-namespace
 
@@ -71,5 +71,5 @@ jobs:
         run: |
           helm upgrade --install loki-stack \
             grafana/loki-stack \
-            -f ./k8s/helm/tmp-loki-values.yaml \
+            -f ./tmp-loki-values.yaml \
             -n monitoring
