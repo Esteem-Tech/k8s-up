@@ -53,11 +53,11 @@ grafana:
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
     hosts:
-      - grafana-${ENV}.k8s.iradukunda.me
+      - ${SUB_DOMAIN}.k8s.iradukunda.me
     tls:
       - secretName: wildcard-tls-secret
         hosts:
-          - grafana-${SUB_DOMAIN}.k8s.iradukunda.me
+          - ${SUB_DOMAIN}.k8s.iradukunda.me
   sidecar:
     dashboards:
       enabled: true
