@@ -63,7 +63,7 @@ jobs:
         run: |
           helm upgrade --install prometheus-stack \
             prometheus-community/kube-prometheus-stack \
-            -f ./tmp-prometheus-kube-stack-values.yml \
+            -f ./tmp-prometheus-values.yml \
             -n monitoring \
             --create-namespace
 
