@@ -1,0 +1,29 @@
+# Loki stack values.yaml
+loki:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClassName: do-block-storage
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+
+promtail:
+  enabled: true
+  serviceAccount:
+    create: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
+
+grafana:
+  enabled: false  # we already have Grafana in our stack

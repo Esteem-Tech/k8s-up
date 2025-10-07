@@ -1,0 +1,99 @@
+# kube-prometheus-stack values.yaml
+
+# ========== Prometheus ==========
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    retention: 7d
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+    # Enables scraping kubelet and cAdvisor metrics
+    kubeletService: kubelet
+    podMonitorSelectorNilUsesHelmValues: false
+
+# ========== Node Exporter ==========
+nodeExporter:
+  enabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# ========== Kube-state-metrics ==========
+kubeStateMetrics:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# ========== Grafana ==========
+grafana:
+  enabled: true
+  adminUser: admin
+  adminPassword: ${GRAFANA_ADMIN_PASSWORD}
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClassName: do-block-storage
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - grafana-${ENV}.k8s.iradukunda.me
+    tls:
+      - secretName: wildcard-tls-secret
+        hosts:
+          - grafana-${ENV}.k8s.iradukunda.me
+  sidecar:
+    dashboards:
+      enabled: true
+    datasources:
+      enabled: true
+
+# ========== Alertmanager (optional) ==========
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+# ========== Prometheus Operator ==========
+prometheusOperator:
+  createCustomResource: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# ========== Metrics Relabeling for cluster metrics ==========
+additionalServiceMonitors:
+  - name: kubelet
+    namespace: kube-system
+    selector:
+      matchLabels:
+        k8s-app: kubelet
+    endpoints:
+      - port: https-metrics
+        interval: 30s
