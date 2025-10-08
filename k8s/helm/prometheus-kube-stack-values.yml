@@ -58,11 +58,11 @@ grafana:
       - secretName: wildcard-tls-secret
         hosts:
           - "${SUB_DOMAIN}.k8s.iradukunda.me"
-  sidecar:
-    dashboards:
-      enabled: true
-    datasources:
-      enabled: true
+  # sidecar:
+  #   dashboards:
+  #     enabled: true
+    # datasources:
+    #   enabled: true
 
 # ========== Alertmanager (optional) ==========
 alertmanager:
