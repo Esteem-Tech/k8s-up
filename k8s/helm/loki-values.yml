@@ -1,6 +1,8 @@
 # Loki stack values.yaml
 loki:
   enabled: true
+  image:
+    tag: 2.9.3
   persistence:
     enabled: true
     size: 5Gi
