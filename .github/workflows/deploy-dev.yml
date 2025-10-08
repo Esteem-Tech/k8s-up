@@ -31,7 +31,7 @@ jobs:
 
       # 4️⃣ Configure kubeconfig from secret
       - name: Set up DigitalOcean CLI
-        uses: digitalocean/action-doctl@v2
+        uses: digitalocean/action-doctl@v2.5.1
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           
@@ -67,10 +67,10 @@ jobs:
             -n monitoring \
             --create-namespace
 
-      # 7️⃣ Deploy Loki + Promtail
-      - name: Deploy Loki Stack
-        run: |
-          helm upgrade --install loki-stack \
-            grafana/loki-stack \
-            -f ./tmp-loki-values.yml \
-            -n monitoring
+      # # 7️⃣ Deploy Loki + Promtail
+      # - name: Deploy Loki Stack
+      #   run: |
+      #     helm upgrade --install loki-stack \
+      #       grafana/loki-stack \
+      #       -f ./tmp-loki-values.yml \
+      #       -n monitoring
