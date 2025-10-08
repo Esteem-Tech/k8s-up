@@ -59,18 +59,18 @@ jobs:
           envsubst < ./k8s/helm/loki-values.yml > ./tmp-loki-values.yml
           
       # 6️⃣ Deploy Prometheus + kube-prometheus-stack
-      # - name: Deploy Prometheus Stack
-      #   run: |
-      #     helm upgrade --install prometheus-stack \
-      #       prometheus-community/kube-prometheus-stack \
-      #       -f ./tmp-prometheus-values.yml \
-      #       -n monitoring \
-      #       --create-namespace
+      - name: Deploy Prometheus Stack
+        run: |
+          helm upgrade --install prometheus-stack \
+            prometheus-community/kube-prometheus-stack \
+            -f ./tmp-prometheus-values.yml \
+            -n monitoring \
+            --create-namespace
 
       # 7️⃣ Deploy Loki + Promtail
       - name: Deploy Loki Stack
         run: |
-          helm upgrade --install loki-stack \
-            grafana/loki-stack \
+          helm upgrade --install loki \
+            grafana/loki \
             -f ./tmp-loki-values.yml \
             -n monitoring
