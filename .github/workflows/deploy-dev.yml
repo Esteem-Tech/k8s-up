@@ -70,7 +70,7 @@ jobs:
       # 7️⃣ Deploy Loki + Promtail
       - name: Deploy Loki Stack
         run: |
-          helm upgrade --install loki \
-            grafana/loki \
+          helm upgrade --install loki-stack \
+            grafana/loki-stack \
             -f ./tmp-loki-values.yml \
             -n monitoring
