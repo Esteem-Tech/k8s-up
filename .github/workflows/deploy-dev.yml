@@ -49,14 +49,25 @@ jobs:
       - name: Inject secrets into Helm values
         env:
           GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SUB_DOMAIN: grafana-dev
         run: |
           # Install envsubst if missing
           sudo apt-get update && sudo apt-get install -y gettext-base
 
           # Create temporary files with substituted values
+          envsubst < ./k8s/helm/grafana-values.yml > ./tmp-grafana-values.yml
           envsubst < ./k8s/helm/prometheus-kube-stack-values.yml > ./tmp-prometheus-values.yml
           envsubst < ./k8s/helm/loki-values.yml > ./tmp-loki-values.yml
+      
+      # Deploy Grafana
+      - name: Deploy Grafana
+        run: |
+          helm upgrade --install grafana \
+            grafana/grafana \
+            -f ./tmp-grafana-values.yml \
+            -n monitoring \
+            --create-namespace
           
       # 6️⃣ Deploy Prometheus + kube-prometheus-stack
       - name: Deploy Prometheus Stack

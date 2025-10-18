@@ -1,0 +1,36 @@
+# ========== Grafana ==========
+grafana:
+  enabled: true
+  adminUser: admin
+  adminPassword: "${GRAFANA_ADMIN_PASSWORD}"
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClassName: do-block-storage
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - "${SUB_DOMAIN}.k8s.iradukunda.me"
+    tls:
+      - secretName: wildcard-tls-secret
+        hosts:
+          - "${SUB_DOMAIN}.k8s.iradukunda.me"
+  sidecar:
+    dashboards:
+      enabled: true
+    datasources:
+      enabled: true
+  alerting:
+    contactpoints.yaml: |
+      apiVersion: 1
+      contactPoints:
+        - orgId: 1
+          name: Slack Alerts
+          receivers:
+            - uid: slack-default
+              type: slack
+              settings:
+                url: ${SLACK_WEBHOOK_URL}
