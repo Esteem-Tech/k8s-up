@@ -22,7 +22,7 @@ sidecar:
   datasources:
     enabled: true
 alerting:
-  contactpoints.yaml: |
+  contactpoints.yaml:
     apiVersion: 1
     contactPoints:
       - orgId: 1
