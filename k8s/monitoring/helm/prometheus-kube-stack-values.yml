@@ -56,4 +56,5 @@ prometheusOperator:
       memory: 256Mi
   admissionWebhooks:
     enabled: false
+    patch: true
 
