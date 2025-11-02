@@ -57,7 +57,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y gettext-base
 
           # Create temporary files with substituted values
-          envsubst < ./k8s/set-up/cluster-issuers/letsencrypt.yml > ./tmp-letsencrypt.yml
+          envsubst < ./k8s/set-up/letsencrypt-issuer.yml > ./tmp-letsencrypt.yml
           envsubst < ./k8s/monitoring/helm/grafana-values.yml > ./tmp-grafana-values.yml
           envsubst < ./k8s/monitoring/helm/prometheus-kube-stack-values.yml > ./tmp-prometheus-values.yml
           envsubst < ./k8s/monitoring/helm/loki-values.yml > ./tmp-loki-values.yml
