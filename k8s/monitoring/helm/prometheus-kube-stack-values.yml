@@ -55,6 +55,6 @@ prometheusOperator:
       cpu: 200m
       memory: 256Mi
   admissionWebhooks:
-    enabled: false
-    patch: true
+    enabled: true
+    patch: {}
 
