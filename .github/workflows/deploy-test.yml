@@ -51,6 +51,7 @@ jobs:
           GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           ISSUER_NOTIFICATION_EMAIL: ${{ secrets.ISSUER_NOTIFICATION_EMAIL }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           STORAGE_CLASS_NAME: local-path
           SUB_DOMAIN: monitoring
         run: |
@@ -62,6 +63,12 @@ jobs:
           envsubst < ./k8s/monitoring/helm/grafana-values.yml > ./tmp-grafana-values.yml
           envsubst < ./k8s/monitoring/helm/prometheus-kube-stack-values.yml > ./tmp-prometheus-values.yml
           envsubst < ./k8s/monitoring/helm/loki-values.yml > ./tmp-loki-values.yml
+          envsubst < ./k8s/secrets/cloudflare-api-token.yml > ./tmp-cloudflare-token.yml
+      
+      # Apply Cloudflare API token secret
+      - name: Apply Cloudflare API Token Secret
+        run: |
+          kubectl apply -f ./tmp-cloudflare-token.yml
       
       - name: Deploy Cert-Manager
         run: |
