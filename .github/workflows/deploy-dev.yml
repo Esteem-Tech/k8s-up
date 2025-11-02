@@ -51,7 +51,7 @@ jobs:
           GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           ISSUER_NOTIFICATION_EMAIL: ${{ secrets.ISSUER_NOTIFICATION_EMAIL }}
-          STORAGE_CLASS_NAME: ${{ secrets.STORAGE_CLASS_NAME }}
+          STORAGE_CLASS_NAME: do-block-storage
           SUB_DOMAIN: grafana-dev
         run: |
           # Install envsubst if missing
