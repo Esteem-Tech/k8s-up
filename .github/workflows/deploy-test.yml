@@ -32,6 +32,7 @@ jobs:
       # Configure kubeconfig from secret
       - name: Set up kubeconfig for k3s
         run: |
+          mkdir -p $HOME/.kube
           echo "${{ secrets.CLUSTER_KUBECONFIG }}" > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
 
