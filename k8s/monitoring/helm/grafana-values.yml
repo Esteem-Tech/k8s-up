@@ -13,7 +13,7 @@ ingress:
   hosts:
     - "${SUB_DOMAIN}.test.k8s.iradukunda.me"
   tls:
-    - secretName: wildcard-tls-secret
+    - secretName: ${SUB_DOMAIN}-tls-secret
       hosts:
         - "${SUB_DOMAIN}.test.k8s.iradukunda.me"
 sidecar:
