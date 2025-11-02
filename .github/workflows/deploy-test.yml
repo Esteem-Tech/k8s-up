@@ -38,10 +38,11 @@ jobs:
 
 
       # Add Helm repos
-      - name: Add Grafana Helm repo
+      - name: Add Helm repos
         run: |
           helm repo add grafana https://grafana.github.io/helm-charts
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add jetstack https://charts.jetstack.io
           helm repo update
       
       # Replace Variables in values files
@@ -61,6 +62,14 @@ jobs:
           envsubst < ./k8s/monitoring/helm/grafana-values.yml > ./tmp-grafana-values.yml
           envsubst < ./k8s/monitoring/helm/prometheus-kube-stack-values.yml > ./tmp-prometheus-values.yml
           envsubst < ./k8s/monitoring/helm/loki-values.yml > ./tmp-loki-values.yml
+      
+      - name: Deploy Cert-Manager
+        run: |
+          helm upgrade --install cert-manager jetstack/cert-manager \
+            --namespace cert-manager \
+            --create-namespace \
+            --set installCRDs=true
+
 
       # Apply Cluster Issuer for cert-manager
       - name: Apply Let's Encrypt Cluster Issuer
