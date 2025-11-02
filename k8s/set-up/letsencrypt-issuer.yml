@@ -4,8 +4,7 @@ metadata:
   name: letsencrypt
 spec:
   acme:
-    # Staging server for testing; switch to production once verified
-    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    server: https://acme-v02.api.letsencrypt.org/directory
     email: ${ISSUER_NOTIFICATION_EMAIL}
     privateKeySecretRef:
       name: letsencrypt
