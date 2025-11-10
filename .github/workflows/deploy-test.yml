@@ -79,7 +79,7 @@ jobs:
     environment: test
     needs: deploy-issuer
     if: false  # Temporarily disabled
-    
+
     steps:
       # Checkout repo
       - name: Checkout repo
@@ -205,8 +205,8 @@ jobs:
         run: |
           helm upgrade --install vault hashicorp/vault \
             -f ./tmp-vault-values.yml \
-            -n vault
-            --create-namespace=true
+            --namespace vault \
+            --create-namespace
 
       # Apply Vault configurations
 
