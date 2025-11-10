@@ -64,7 +64,7 @@ jobs:
           helm upgrade --install cert-manager jetstack/cert-manager \
             --namespace cert-manager \
             --create-namespace \
-            --set crds.enable=true
+            --set crds.enabled=true
 
 
       # Apply Cluster Issuer for cert-manager
