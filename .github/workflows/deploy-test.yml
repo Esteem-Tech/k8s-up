@@ -7,9 +7,77 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-issuer:
     runs-on: ubuntu-latest
     environment: test
+
+    steps:
+      # Checkout repo
+      - name: Checkout repo
+        uses: actions/checkout@v5.0.0
+      
+      # Setup kubectl
+      - name: install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+
+      # Setup Helm
+      - name: Set up Helm
+        uses: azure/setup-helm@v4.3.1
+        with:
+          version: 'v3.14.0'
+
+      # Configure kubeconfig from secret
+      - name: Set up kubeconfig for k3s
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.CLUSTER_KUBECONFIG }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+      
+      # Add Helm repos
+      - name: Add Helm repos
+        run: |
+          helm repo add jetstack https://charts.jetstack.io
+          helm repo update 
+      
+      # Replace Variables in values files
+      - name: Inject secrets into Helm values
+        env:
+          ISSUER_NOTIFICATION_EMAIL: ${{ secrets.ISSUER_NOTIFICATION_EMAIL }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          # Install envsubst if missing
+          sudo apt-get update && sudo apt-get install -y gettext-base
+          # Create temporary files with substituted values
+          envsubst < ./k8s/set-up/letsencrypt-issuer.yml > ./tmp-letsencrypt.yml
+          envsubst < ./k8s/secrets/cloudflare-api-token.yml > ./tmp-cloudflare-token.yml
+      
+      # Apply Cloudflare API token secret
+      - name: Apply Cloudflare API Token Secret
+        run: |
+          kubectl apply -f ./tmp-cloudflare-token.yml
+      
+      - name: Deploy Cert-Manager
+        run: |
+          helm upgrade --install cert-manager jetstack/cert-manager \
+            --namespace cert-manager \
+            --create-namespace \
+            --set installCRDs=true
+
+
+      # Apply Cluster Issuer for cert-manager
+      - name: Apply Let's Encrypt Cluster Issuer
+        run: |
+          kubectl apply -f ./tmp-letsencrypt.yml
+      
+      
+
+  deploy-monitoring:
+    runs-on: ubuntu-latest
+    environment: test
+    needs: deploy-issuer
 
     steps:
       # Checkout repo
@@ -42,7 +110,6 @@ jobs:
         run: |
           helm repo add grafana https://grafana.github.io/helm-charts
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-          helm repo add jetstack https://charts.jetstack.io
           helm repo update
       
       # Replace Variables in values files
@@ -59,29 +126,9 @@ jobs:
           sudo apt-get update && sudo apt-get install -y gettext-base
 
           # Create temporary files with substituted values
-          envsubst < ./k8s/set-up/letsencrypt-issuer.yml > ./tmp-letsencrypt.yml
           envsubst < ./k8s/monitoring/helm/grafana-values.yml > ./tmp-grafana-values.yml
           envsubst < ./k8s/monitoring/helm/prometheus-kube-stack-values.yml > ./tmp-prometheus-values.yml
           envsubst < ./k8s/monitoring/helm/loki-values.yml > ./tmp-loki-values.yml
-          envsubst < ./k8s/secrets/cloudflare-api-token.yml > ./tmp-cloudflare-token.yml
-      
-      # Apply Cloudflare API token secret
-      - name: Apply Cloudflare API Token Secret
-        run: |
-          kubectl apply -f ./tmp-cloudflare-token.yml
-      
-      - name: Deploy Cert-Manager
-        run: |
-          helm upgrade --install cert-manager jetstack/cert-manager \
-            --namespace cert-manager \
-            --create-namespace \
-            --set installCRDs=true
-
-
-      # Apply Cluster Issuer for cert-manager
-      - name: Apply Let's Encrypt Cluster Issuer
-        run: |
-          kubectl apply -f ./tmp-letsencrypt.yml
       
       # Deploy Grafana
       - name: Deploy Grafana
