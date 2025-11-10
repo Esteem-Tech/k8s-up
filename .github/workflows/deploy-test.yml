@@ -64,7 +64,7 @@ jobs:
           helm upgrade --install cert-manager jetstack/cert-manager \
             --namespace cert-manager \
             --create-namespace \
-            --set installCRDs=true
+            --set crds.enable=true
 
 
       # Apply Cluster Issuer for cert-manager
@@ -155,3 +155,54 @@ jobs:
             grafana/loki-stack \
             -f ./tmp-loki-values.yml \
             -n monitoring
+
+  deploy-vault:
+    runs-on: ubuntu-latest
+    environment: test
+    needs: deploy-issuer
+
+    steps:
+      # Checkout repo
+      - name: Checkout repo
+        uses: actions/checkout@v5.0.0
+      
+      # Setup kubectl
+      - name: install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+
+      # Configure kubeconfig from secret
+      - name: Set up kubeconfig for k3s
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.CLUSTER_KUBECONFIG }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+      
+      # Replace Variables in values files
+      - name: Inject secrets into Vault ingress
+        env:
+          SUB_DOMAIN: vault
+        run: |
+          # Install envsubst if missing
+          sudo apt-get update && sudo apt-get install -y gettext-base
+
+          # Create temporary files with substituted values
+          envsubst < ./k8s/vault/vault-ingress.yml > ./tmp-vault-ingress.yml
+          envsubst < ./k8s/vault/vault-values.yml > ./tmp-vault-values.yml
+    
+      
+      # Deploy Vault via Helm
+      - name: Deploy HashiCorp Vault via Helm
+        run: |
+          helm upgrade --install vault hashicorp/vault \
+            -f ./tmp-vault-values.yml \
+            -n vault
+            --create-namespace=true
+
+      # Apply Vault configurations
+
+      - name: Deploy HashiCorp Vault configurations
+        run: |
+          kubectl apply -f ./tmp-vault-ingress.yml -n vault

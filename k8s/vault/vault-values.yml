@@ -1,0 +1,29 @@
+# vault-values.yml
+server:
+  ha:
+    enabled: false                # single-node Vault for local-path
+  dataStorage:
+    enabled: true
+    size: 10Gi                    # adjust as needed
+    storageClass: local-path      # local-path for your k3s nodes
+
+ui:
+  enabled: true                   # enable Vault UI
+
+injector:
+  enabled: true                   # enable Vault Agent injector
+
+# Service type is ClusterIP; we’ll expose via ingress
+externalConfig:
+  serviceType: ClusterIP
+
+# Optional: additional annotations for monitoring, etc.
+serverConfig:
+  annotations: {}
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
