@@ -78,7 +78,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: test
     needs: deploy-issuer
-
+    if: false  # Temporarily disabled
+    
     steps:
       # Checkout repo
       - name: Checkout repo
@@ -179,6 +180,12 @@ jobs:
           mkdir -p $HOME/.kube
           echo "${{ secrets.CLUSTER_KUBECONFIG }}" > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
+      
+      # Add Helm repos
+      - name: Add Helm repos
+        run: |
+          helm repo add hashicorp https://helm.releases.hashicorp.com
+          helm repo update
       
       # Replace Variables in values files
       - name: Inject secrets into Vault ingress
