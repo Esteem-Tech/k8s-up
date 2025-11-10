@@ -9,10 +9,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - ${SUB_DOMAIN}.k8s.iradukunda.me
+        - ${SUB_DOMAIN}.test.k8s.iradukunda.me
       secretName: vault-tls
   rules:
-    - host: ${SUB_DOMAIN}.k8s.iradukunda.me
+    - host: ${SUB_DOMAIN}.test.k8s.iradukunda.me
       http:
         paths:
           - path: /
