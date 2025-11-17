@@ -1,4 +1,4 @@
-apiVersion: postgresql.cnpg.io/v1
+apiVersion: postgresql.cnpg.io/v1beta1
 kind: Cluster
 metadata:
   name: ubutumwa-bugufi
