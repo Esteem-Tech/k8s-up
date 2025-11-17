@@ -225,3 +225,39 @@ jobs:
       - name: Deploy HashiCorp Vault configurations
         run: |
           kubectl apply -f ./tmp-vault-ingress.yml -n vault
+
+  deploy-databases:
+    runs-on: ubuntu-latest
+    environment: test
+    needs: deploy-core-components
+
+    steps:
+      # Checkout repo
+      - name: Checkout repo
+        uses: actions/checkout@v5.0.0
+      
+      # Setup kubectl
+      - name: install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+
+      # Configure kubeconfig from secret
+      - name: Set up kubeconfig for k3s
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.CLUSTER_KUBECONFIG }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+      
+      # Add Helm repos
+      - name: Add Helm repos
+        run: |
+          helm repo add cnpg https://cloudnative-pg.github.io/charts
+      
+      # Deploy CloudNative Postgres Operator
+      - name: Deploy CloudNative Postgres Operator
+        run: |
+          helm upgrade --install cloudnative-pg cnpg/cloudnative-pg \
+            --namespace database \
+            --create-namespace
