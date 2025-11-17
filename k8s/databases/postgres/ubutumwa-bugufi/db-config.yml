@@ -12,9 +12,7 @@ spec:
   bootstrap:
     initdb:
       database: ubutumwa-bugufi
-      owner: ubutumwa_user
-  users:
-    - name: ubutumwa_user
-      passwordSecret: ubutumwa-bugufi-db-user-secret
-      databases:
-        - ubutumwa-bugufi
+      owner: ubutumwa-bugufi
+      secret:
+        name: ubutumwa-bugufi-db-user-secret
+
