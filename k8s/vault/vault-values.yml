@@ -5,7 +5,7 @@ server:
   dataStorage:
     enabled: true
     size: 10Gi                    # adjust as needed
-    storageClass: local-path      # local-path for your k3s nodes
+    storageClass: local-path      # local-path for k3s nodes
 
 ui:
   enabled: true                   # enable Vault UI
@@ -17,7 +17,7 @@ injector:
 externalConfig:
   serviceType: ClusterIP
 
-# Optional: additional annotations for monitoring, etc.
+# Optional: additional annotations for the Vault server pods
 serverConfig:
   annotations: {}
   resources:
