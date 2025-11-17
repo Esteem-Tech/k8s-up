@@ -1,15 +1,15 @@
 name: Deploy Kubernetes Cluster Components
 
 on:
-  push:
+  pull_request:
     branches:
       - main
-  workflow_dispatch:
+
 
 jobs:
   deploy-core-components:
     runs-on: ubuntu-latest
-    environment: production
+    environment: test
 
     steps:
       # Checkout repo
@@ -88,7 +88,7 @@ jobs:
 
   deploy-monitoring:
     runs-on: ubuntu-latest
-    environment: production
+    environment: test
     needs: deploy-core-components
 
     steps:
@@ -170,7 +170,7 @@ jobs:
 
   deploy-vault:
     runs-on: ubuntu-latest
-    environment: production
+    environment: test
     needs: deploy-core-components
 
     steps:
@@ -228,7 +228,7 @@ jobs:
 
   deploy-databases:
     runs-on: ubuntu-latest
-    environment: production
+    environment: test
     needs: deploy-core-components
 
     steps:
