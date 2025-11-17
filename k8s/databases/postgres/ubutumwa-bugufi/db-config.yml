@@ -14,4 +14,7 @@ spec:
       owner: ubutumwa-bugufi
       secret:
         name: ubutumwa-bugufi-db-user-secret
+  # Enable monitoring
+  monitoring:
+    enablePodMonitor: true
 
