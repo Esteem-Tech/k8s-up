@@ -81,8 +81,7 @@ jobs:
       # Deploy Longhorn Storage Class
       - name: Deploy Longhorn Storage Class
         run: |
-          helm upgrade longhorn longhorn/longhorn \
-            --install \
+          helm upgrade --install longhorn longhorn/longhorn \
             --namespace longhorn-system \
             --create-namespace \
             --version 1.10.1  
@@ -91,7 +90,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: test
     needs: deploy-core-components
-    if: false  # Temporarily disabled
 
     steps:
       # Checkout repo
