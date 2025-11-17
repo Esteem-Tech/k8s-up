@@ -253,17 +253,17 @@ jobs:
           echo "${{ secrets.CLUSTER_KUBECONFIG }}" > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
       
-      # Add Helm repos
-      - name: Add Helm repos
-        run: |
-          helm repo add cnpg https://cloudnative-pg.github.io/charts
+      # # Add Helm repos
+      # - name: Add Helm repos
+      #   run: |
+      #     helm repo add cnpg https://cloudnative-pg.github.io/charts
       
-      # Deploy CloudNative Postgres Operator
-      - name: Deploy CloudNative Postgres Operator
-        run: |
-          helm upgrade --install cloudnative-pg cnpg/cloudnative-pg \
-            --namespace database \
-            --create-namespace
+      # # Deploy CloudNative Postgres Operator
+      # - name: Deploy CloudNative Postgres Operator
+      #   run: |
+      #     helm upgrade --install cloudnative-pg cnpg/cloudnative-pg \
+      #       --namespace database \
+      #       --create-namespace
       
       # Replace Variables in database manifests
       - name: Replace Variables in database manifests
