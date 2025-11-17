@@ -1,6 +1,9 @@
 name: Deploy Monitoring Stack
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
@@ -229,7 +232,7 @@ jobs:
   deploy-databases:
     runs-on: ubuntu-latest
     environment: test
-    # needs: deploy-core-components
+    needs: deploy-core-components
 
     steps:
       # Checkout repo
