@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-issuer:
+  deploy-core-components:
     runs-on: ubuntu-latest
     environment: test
 
@@ -71,13 +71,26 @@ jobs:
       - name: Apply Let's Encrypt Cluster Issuer
         run: |
           kubectl apply -f ./tmp-letsencrypt.yml
+
+      # Add Longhorn Helm repo
+      - name: Add Longhorn Helm repo
+        run: |
+          helm repo add longhorn https://charts.longhorn.io
+          helm repo update
       
-      
+      # Deploy Longhorn Storage Class
+      - name: Deploy Longhorn Storage Class
+        run: |
+          helm upgrade longhorn longhorn/longhorn \
+            --install \
+            --namespace longhorn-system \
+            --create-namespace \
+            --version 1.10.1  
 
   deploy-monitoring:
     runs-on: ubuntu-latest
     environment: test
-    needs: deploy-issuer
+    needs: deploy-core-components
     if: false  # Temporarily disabled
 
     steps:
@@ -120,7 +133,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           ISSUER_NOTIFICATION_EMAIL: ${{ secrets.ISSUER_NOTIFICATION_EMAIL }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          STORAGE_CLASS_NAME: local-path
+          STORAGE_CLASS_NAME: longhorn
           SUB_DOMAIN: monitoring
         run: |
           # Install envsubst if missing
@@ -160,7 +173,7 @@ jobs:
   deploy-vault:
     runs-on: ubuntu-latest
     environment: test
-    needs: deploy-issuer
+    needs: deploy-core-components
 
     steps:
       # Checkout repo
@@ -191,6 +204,7 @@ jobs:
       - name: Inject secrets into Vault ingress
         env:
           SUB_DOMAIN: vault
+          STORAGE_CLASS_NAME: longhorn
         run: |
           # Install envsubst if missing
           sudo apt-get update && sudo apt-get install -y gettext-base

@@ -1,11 +1,11 @@
 # vault-values.yml
 server:
   ha:
-    enabled: false                # single-node Vault for local-path
+    enabled: false                # single-node Vault
   dataStorage:
     enabled: true
-    size: 10Gi                    # adjust as needed
-    storageClass: local-path      # local-path for k3s nodes
+    size: 10Gi                    
+    storageClass: ${STORAGE_CLASS_NAME}       
 
 ui:
   enabled: true                   # enable Vault UI
