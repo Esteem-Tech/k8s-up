@@ -279,7 +279,11 @@ jobs:
           envsubst < ./k8s/databases/postgres/ubutumwa-bugufi/db-config.yml > ./tmp-ubutumwa-bugufi.yml
 
       # Deploy Postgres Databases
-      - name: Deploy Postgres Databases
+      - name: Deploy Postgres Auth Credentials
         run: |
           kubectl apply -f ./tmp-ubutumwa-bugufi-auth.yml -n database
+      
+      # Deploy Postgres Database Configuration
+      - name: Deploy Postgres Database Configuration
+        run: |
           kubectl apply -f ./tmp-ubutumwa-bugufi.yml -n database
