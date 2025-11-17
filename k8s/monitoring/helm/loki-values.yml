@@ -6,7 +6,7 @@ loki:
   persistence:
     enabled: true
     size: 5Gi
-    storageClassName: do-block-storage
+    storageClassName: ${STORAGE_CLASS_NAME}
   resources:
     requests:
       cpu: 100m

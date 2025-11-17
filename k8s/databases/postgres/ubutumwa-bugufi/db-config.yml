@@ -1,0 +1,18 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: ubutumwa-bugufi
+  namespace: database
+spec:
+  instances: 1
+  storage:
+    size: 10Gi
+    storageClass: longhorn
+  bootstrap:
+    initdb:
+      database: ubutumwa-bugufi
+      owner: ubutumwa-bugufi
+  # Enable monitoring
+  monitoring:
+    enablePodMonitor: true
+

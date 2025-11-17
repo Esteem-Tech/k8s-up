@@ -1,0 +1,29 @@
+# vault-values.yml
+server:
+  ha:
+    enabled: false                # single-node Vault
+  dataStorage:
+    enabled: true
+    size: 10Gi                    
+    storageClass: ${STORAGE_CLASS_NAME}       
+
+ui:
+  enabled: true                   # enable Vault UI
+
+injector:
+  enabled: true                   # enable Vault Agent injector
+
+# Service type is ClusterIP; we’ll expose via ingress
+externalConfig:
+  serviceType: ClusterIP
+
+# Optional: additional annotations for the Vault server pods
+serverConfig:
+  annotations: {}
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
