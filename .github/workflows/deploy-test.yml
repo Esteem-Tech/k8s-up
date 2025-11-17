@@ -261,3 +261,20 @@ jobs:
           helm upgrade --install cloudnative-pg cnpg/cloudnative-pg \
             --namespace database \
             --create-namespace
+      
+      # Replace Variables in database manifests
+      - name: Replace Variables in database manifests
+        env:
+          UBUTUMWA_BUGUFI_DB_USER: ${{ secrets.UBUTUMWA_BUGUFI_DB_USER }}
+          UBUTUMWA_BUGUFI_DB_PASSWORD: ${{ secrets.UBUTUMWA_BUGUFI_DB_PASSWORD }}
+        run: |
+          # Install envsubst if missing
+          sudo apt-get update && sudo apt-get install -y gettext-base
+
+          # Create temporary files with substituted values
+          envsubst < ./k8s/databases/postgres/ubutumwa-bugufi.yml > ./tmp-ubutumwa-bugufi.yml
+
+      # Deploy Postgres Databases
+      - name: Deploy Postgres Databases
+        run: |
+          kubectl apply -f ./tmp-ubutumwa-bugufi.yml -n database
