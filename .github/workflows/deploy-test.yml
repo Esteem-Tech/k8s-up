@@ -10,6 +10,7 @@ jobs:
   deploy-core-components:
     runs-on: ubuntu-latest
     environment: test
+    if: false  # Disable this job for now
 
     steps:
       # Checkout repo
@@ -90,6 +91,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: test
     needs: deploy-core-components
+    if: false  # Disable this job for now
 
     steps:
       # Checkout repo
@@ -172,6 +174,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: test
     needs: deploy-core-components
+    if: false  # Disable this job for now
 
     steps:
       # Checkout repo
@@ -229,7 +232,7 @@ jobs:
   deploy-databases:
     runs-on: ubuntu-latest
     environment: test
-    needs: deploy-core-components
+    # needs: deploy-core-components
 
     steps:
       # Checkout repo
