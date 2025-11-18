@@ -1,14 +1,18 @@
 name: Deploy Kubernetes Cluster Components
 
 on:
-  release:
-    types: [prereleased]
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
 
 
 jobs:
   deploy-core-components:
     runs-on: ubuntu-latest
-    environment: test
+    environment: development
 
     steps:
       # Checkout repo
@@ -87,7 +91,7 @@ jobs:
 
   deploy-monitoring:
     runs-on: ubuntu-latest
-    environment: test
+    environment: development
     needs: deploy-core-components
 
     steps:
@@ -169,7 +173,7 @@ jobs:
 
   deploy-vault:
     runs-on: ubuntu-latest
-    environment: test
+    environment: development
     needs: deploy-core-components
 
     steps:
@@ -227,7 +231,7 @@ jobs:
 
   deploy-databases:
     runs-on: ubuntu-latest
-    environment: test
+    environment: development
     needs: deploy-core-components
 
     steps:
@@ -269,7 +273,7 @@ jobs:
       # Replace Environment Variables
       - name: Inject environment into Database configuration
         env:
-          ENVIRONMENT: test
+          ENVIRONMENT: dev
         run: |
           # Install envsubst if missing
           sudo apt-get update && sudo apt-get install -y gettext-base

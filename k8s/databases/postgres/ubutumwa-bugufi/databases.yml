@@ -1,0 +1,13 @@
+# Dev Database for Ubutumwa Bugufi Application
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: ubutumwa-bugufi-${ENVIRONMENT}
+spec:
+  name: ubutumwa-bugufi-${ENVIRONMENT}
+  owner: UbutumwaBugufiUser
+  cluster:
+    name: ubutumwa-bugufi
+  schemas:
+    - name: ub
+      owner: UbutumwaBugufiUser
