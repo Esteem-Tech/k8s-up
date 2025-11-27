@@ -269,4 +269,4 @@ jobs:
       # Deploy Postgres Databases
       - name: Deploy Postgres Databases
         run: |
-          kubectl apply -f ./tmp-databases.yml -n database
+          kubectl apply -f ./k8s/databases/postgres/ubutumwa-bugufi/databases.yml -n database
