@@ -2,9 +2,24 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
-  name: ubutumwa-bugufi-${ENVIRONMENT}
+  name: ubutumwa-bugufi-dev
 spec:
-  name: ubutumwa-bugufi-${ENVIRONMENT}
+  name: ubutumwa-bugufi-dev
+  owner: UbutumwaBugufiUser
+  cluster:
+    name: ubutumwa-bugufi
+  schemas:
+    - name: ub
+      owner: UbutumwaBugufiUser
+
+---
+# Test Database for Ubutumwa Bugufi Application
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: ubutumwa-bugufi-test
+spec:
+  name: ubutumwa-bugufi-test
   owner: UbutumwaBugufiUser
   cluster:
     name: ubutumwa-bugufi

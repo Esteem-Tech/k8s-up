@@ -266,17 +266,6 @@ jobs:
         run: |
           kubectl apply -f ./k8s/databases/postgres/ubutumwa-bugufi/cluster.yml -n database
 
-      # Replace Environment Variables
-      - name: Inject environment into Database configuration
-        env:
-          ENVIRONMENT: test
-        run: |
-          # Install envsubst if missing
-          sudo apt-get update && sudo apt-get install -y gettext-base
-
-          # Create temporary files with substituted values
-          envsubst < ./k8s/databases/postgres/ubutumwa-bugufi/databases.yml > ./tmp-databases.yml
-
       # Deploy Postgres Databases
       - name: Deploy Postgres Databases
         run: |
