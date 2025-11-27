@@ -27,6 +27,7 @@ spec:
       - name: UbutumwaBugufiUser
         ensure: present
         superuser: false
+        createdb: true
         login: true
       
   # Enable monitoring
