@@ -26,3 +26,18 @@ spec:
   schemas:
     - name: ub
       owner: UbutumwaBugufiUser
+
+---
+# Prod Database for Ubutumwa Bugufi Application
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: ubutumwa-bugufi
+spec:
+  name: ubutumwa-bugufi
+  owner: UbutumwaBugufiUser
+  cluster:
+    name: ubutumwa-bugufi
+  schemas:
+    - name: ub
+      owner: UbutumwaBugufiUser
