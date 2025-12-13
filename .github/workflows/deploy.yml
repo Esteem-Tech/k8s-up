@@ -168,7 +168,7 @@ jobs:
   deploy-vault:
     runs-on: ubuntu-latest
     environment: production
-    needs: deploy-core-components
+    needs: deploy-monitoring
 
     steps:
       # Checkout repo
@@ -226,8 +226,7 @@ jobs:
   deploy-databases:
     runs-on: ubuntu-latest
     environment: production
-    needs: deploy-core-components
-
+    needs: deploy-vault
     steps:
       # Checkout repo
       - name: Checkout repo
@@ -259,12 +258,14 @@ jobs:
             --namespace database \
             --create-namespace
       
-      # Deploy Postgres Database Cluster
-      - name: Deploy Postgres Database Configuration
+      # Deploy Postgres Database Clusters
+      - name: Deploy Postgres Clusters
         run: |
           kubectl apply -f ./k8s/databases/postgres/ubutumwa-bugufi/cluster.yml -n database
+          kubectl apply -f ./k8s/databases/postgres/q-flow/cluster.yml -n database
       
       # Deploy Postgres Databases
       - name: Deploy Postgres Databases
         run: |
           kubectl apply -f ./k8s/databases/postgres/ubutumwa-bugufi/databases.yml -n database
+          kubectl apply -f ./k8s/databases/postgres/q-flow/databases.yml -n database

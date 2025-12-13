@@ -2,7 +2,7 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: ubutumwa-bugufi
+  name: q-flow
   namespace: database
 spec:
   instances: 1
@@ -24,7 +24,7 @@ spec:
   
   managed:
     roles: 
-      - name: UbutumwaBugufiUser
+      - name: QFlowUser
         ensure: present
         superuser: false
         createdb: true
