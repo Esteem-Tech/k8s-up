@@ -1,0 +1,36 @@
+# Cluster configuration for Ubutumwa Bugufi PostgreSQL database cluster
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: q-flow
+  namespace: database
+spec:
+  instances: 1
+  storage:
+    size: 10Gi
+    storageClass: longhorn
+
+  postgresql:
+    parameters:
+      shared_buffers: "128MB"
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1024Mi"
+      cpu: 1
+  
+  managed:
+    roles: 
+      - name: QFlowUser
+        ensure: present
+        superuser: false
+        createdb: true
+        login: true
+      
+  # Enable monitoring
+  monitoring:
+    enablePodMonitor: true
+

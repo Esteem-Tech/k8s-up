@@ -1,0 +1,43 @@
+# Dev Database for Ubutumwa Bugufi Application
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: q-flow-dev
+spec:
+  name: q-flow-dev
+  owner: QFlowUser
+  cluster:
+    name: q-flow
+  schemas:
+    - name: qf
+      owner: QFlowUser
+
+---
+# Test Database for Ubutumwa Bugufi Application
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: q-flow-test
+spec:
+  name: q-flow-test
+  owner: QFlowUser
+  cluster:
+    name: q-flow
+  schemas:
+    - name: qf
+      owner: QFlowUser
+
+---
+# Prod Database for Ubutumwa Bugufi Application
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: q-flow
+spec:
+  name: q-flow
+  owner: QFlowUser
+  cluster:
+    name: q-flow
+  schemas:
+    - name: qf
+      owner: QFlowUser
