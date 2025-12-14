@@ -1,0 +1,9 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: q-flow-on-demand-backup
+spec:
+  cluster:
+    name: q-flow
+  method: volumeSnapshot
+  online: true

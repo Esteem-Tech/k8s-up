@@ -289,6 +289,12 @@ jobs:
           # kubectl apply -f ./k8s/databases/postgres/ubutumwa-bugufi/cluster.yml -n database
           kubectl apply -f ./k8s/databases/postgres/q-flow/cluster.yml -n database
       
+      # Deploy Postgres Backups
+      - name: Deploy Postgres Backups
+        run: |
+          # kubectl apply -f ./k8s/databases/postgres/ubutumwa-bugufi/backups.yml -n database
+          kubectl apply -f ./k8s/databases/postgres/q-flow/backups.yml -n database
+      
       # # Deploy Postgres Databases
       # - name: Deploy Postgres Databases
       #   run: |
