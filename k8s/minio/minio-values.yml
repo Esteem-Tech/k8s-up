@@ -1,5 +1,5 @@
-accessKey: admin
-secretKey: admin
+auth:
+  existingSecret: minio-root-creds
 
 persistence:
   enabled: true
