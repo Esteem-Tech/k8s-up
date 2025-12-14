@@ -282,36 +282,12 @@ jobs:
       #     helm upgrade --install cloudnative-pg cnpg/cloudnative-pg \
       #       --namespace database \
       #       --create-namespace
-
-      # Replace Variables in values files
-      # - name: Inject secrets into Helm values
-      #   env:
-      #     ISSUER_NOTIFICATION_EMAIL: ${{ secrets.ISSUER_NOTIFICATION_EMAIL }}
-      #     CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      #     STORAGE_CLASS_NAME: longhorn
-      #     CNPG_MINIO_ACCESS_KEY: ${{ secrets.CNPG_MINIO_ACCESS_KEY }}
-      #     CNPG_MINIO_SECRET_KEY: ${{ secrets.CNPG_MINIO_SECRET_KEY }}
-      #   run: |
-      #     # Install envsubst if missing
-      #     sudo apt-get update && sudo apt-get install -y gettext-base
-      #     # Create temporary files with substituted values
-      #     envsubst < ./k8s/databases/postgres/cnpg-minio-secrets.yml > ./tmp-cnpg-minio-secrets.yml
-
-      # # Create MinIO secrets for CNPG
-      # - name: Create MinIO secrets for CNPG
-      #   run: |
-      #     kubectl apply -f ./tmp-cnpg-minio-secrets.yml -n database
-
-      # Install Barman Cloud Plugin for DB Backups
-      - name: Install Barman Cloud Plugin for CNPG
-        run: |
-          kubectl apply -f https://github.com/cloudnative-pg/plugin-barman-cloud/releases/download/v0.9.0/manifest.yaml -n database
       
-      # # Deploy Postgres Database Clusters
-      # - name: Deploy Postgres Clusters
-      #   run: |
-      #     # kubectl apply -f ./k8s/databases/postgres/ubutumwa-bugufi/cluster.yml -n database
-      #     kubectl apply -f ./k8s/databases/postgres/q-flow/cluster.yml -n database
+      # Deploy Postgres Database Clusters
+      - name: Deploy Postgres Clusters
+        run: |
+          # kubectl apply -f ./k8s/databases/postgres/ubutumwa-bugufi/cluster.yml -n database
+          kubectl apply -f ./k8s/databases/postgres/q-flow/cluster.yml -n database
       
       # # Deploy Postgres Databases
       # - name: Deploy Postgres Databases
