@@ -1,5 +1,5 @@
 auth:
-  existingSecret: minio-root-creds
+  existingSecret: minio
 
 persistence:
   enabled: true
