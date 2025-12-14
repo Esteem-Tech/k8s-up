@@ -271,10 +271,13 @@ jobs:
           echo "${{ secrets.CLUSTER_KUBECONFIG }}" > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
       
-      # Add Helm repos
+      # Add Helm repos and volume snapshot crds
       # - name: Add Helm repos
       #   run: |
       #     helm repo add cnpg https://cloudnative-pg.github.io/charts
+            # kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml
+            # kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml
+            # kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml
       
       # # Deploy CloudNative Postgres Operator
       # - name: Deploy CloudNative Postgres Operator
@@ -282,6 +285,11 @@ jobs:
       #     helm upgrade --install cloudnative-pg cnpg/cloudnative-pg \
       #       --namespace database \
       #       --create-namespace
+
+      # Deploy VolumeSnapshotClass for Longhorn
+      - name: Deploy VolumeSnapshotClass
+        run: |
+          kubectl apply -f ./k8s/databases/postgres/q-flow/volumeSnapshotClass.yml -n database
       
       # Deploy Postgres Database Clusters
       - name: Deploy Postgres Clusters
@@ -292,11 +300,6 @@ jobs:
       # Deploy Postgres Backups & VolumeSnapshot CRDs
       - name: Deploy Postgres Backups
         run: |
-          kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml
-          kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml
-          kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml
-
-
           # kubectl apply -f ./k8s/databases/postgres/ubutumwa-bugufi/backups.yml -n database
           kubectl apply -f ./k8s/databases/postgres/q-flow/backups.yml -n database
       

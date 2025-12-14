@@ -38,6 +38,6 @@ spec:
   backup:
     # VolumeSnapshot based backups
     volumeSnapshot:
-       className: longhorn
+       className: longhorn-snap
   
 
