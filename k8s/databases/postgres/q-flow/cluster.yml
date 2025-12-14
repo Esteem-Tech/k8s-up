@@ -34,25 +34,4 @@ spec:
   monitoring:
     enablePodMonitor: true
   
-  # Enable backups
-  backup:
-    barmanObjectStore:
-      destinationPath: s3://cnpg-backups/q-flow
-      endpointURL: http://minio.minio.svc.cluster.local:9000
-      s3Credentials:
-        accessKeyId:
-          name: cnpg-minio-creds
-          key: ACCESS_KEY
-        secretAccessKey:
-          name: cnpg-minio-creds
-          key: ACCESS_SECRET_KEY
-
-      wal:
-        compression: gzip
-        maxParallel: 4
-
-      data:
-        compression: gzip
-
-    retentionPolicy: "7d"
 
