@@ -1,18 +1,18 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Backup
 metadata:
-  name: q-flow-on-demand-backup
+  name: ubutumwa-bugufi-on-demand-backup
 spec:
   method: volumeSnapshot
   online: true
   cluster:
-    name: q-flow
+    name: ubutumwa-bugufi
 
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
 metadata:
-  name: q-flow-daily-backup
+  name: ubutumwa-bugufi-daily-backup
   annotations:
     backup.cnpg.io/volumeSnapshotDeadline: "20"
 spec:
@@ -21,4 +21,4 @@ spec:
   method: volumeSnapshot
   online: true
   cluster:
-    name: q-flow
+    name: ubutumwa-bugufi
