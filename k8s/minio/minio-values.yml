@@ -1,5 +1,5 @@
-auth:
-  existingSecret: minio
+rootUser: "${MINIO_ACCESS_KEY}"
+rootPassword: "${MINIO_SECRET_KEY}"
 
 persistence:
   enabled: true
