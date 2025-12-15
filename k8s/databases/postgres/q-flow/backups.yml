@@ -2,6 +2,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Backup
 metadata:
   name: q-flow-on-demand-backup
+  namespace: database
 spec:
   method: volumeSnapshot
   online: true
