@@ -16,7 +16,7 @@ metadata:
   annotations:
     backup.cnpg.io/volumeSnapshotDeadline: "20"
 spec:
-  schedule: "0 0 * * *"
+  schedule: "0 0 0 * * *"
   backupOwnerReference: self
   method: volumeSnapshot
   online: true
