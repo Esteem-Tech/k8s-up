@@ -99,13 +99,17 @@ jobs:
           helm repo add minio https://charts.min.io
           helm repo update
       
+      # Check Minio namespace existence or create it
+      - name: Ensure MinIO namespace exists
+        run: |
+          kubectl get namespace minio || kubectl create namespace minio
+      
       # Deploy MinIO via Helm
       - name: Deploy MinIO via Helm
         run: |
           helm upgrade --install minio minio/minio \
             -f ./tmp-minio-values.yml \
             --namespace minio
-            --create-namespace
       
       # Deploy Volume Snapshot CRDs and Controller
       - name: Deploy Volume Snapshot CRDs and Controller
