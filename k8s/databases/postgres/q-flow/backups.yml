@@ -1,0 +1,25 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: q-flow-on-demand-backup
+  namespace: database
+spec:
+  method: volumeSnapshot
+  online: true
+  cluster:
+    name: q-flow
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: q-flow-daily-backup
+  annotations:
+    backup.cnpg.io/volumeSnapshotDeadline: "20"
+spec:
+  schedule: "0 0 0 * * *"
+  backupOwnerReference: self
+  method: volumeSnapshot
+  online: true
+  cluster:
+    name: q-flow

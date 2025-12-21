@@ -1,0 +1,32 @@
+rootUser: "${MINIO_ACCESS_KEY}"
+rootPassword: "${MINIO_SECRET_KEY}"
+
+persistence:
+  enabled: true
+  size: 15Gi
+  storageClass: ${STORAGE_CLASS_NAME}
+
+replicas: 2
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+
+tls:
+  enabled: false  # set true and provide certs for prod
+
+console:
+  enabled: true
+
+updateStrategy:
+  type: RollingUpdate

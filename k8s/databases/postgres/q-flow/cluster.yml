@@ -34,3 +34,10 @@ spec:
   monitoring:
     enablePodMonitor: true
 
+  # Backups
+  backup:
+    # VolumeSnapshot based backups
+    volumeSnapshot:
+       className: longhorn-snap
+  
+
