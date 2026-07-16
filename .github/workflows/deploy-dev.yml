@@ -50,12 +50,16 @@ jobs:
         env:
           ISSUER_NOTIFICATION_EMAIL: ${{ secrets.ISSUER_NOTIFICATION_EMAIL }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          STORAGE_CLASS_NAME: longhorn
+          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
         run: |
           # Install envsubst if missing
           sudo apt-get update && sudo apt-get install -y gettext-base
           # Create temporary files with substituted values
           envsubst < ./k8s/set-up/letsencrypt-issuer.yml > ./tmp-letsencrypt.yml
           envsubst < ./k8s/secrets/cloudflare-api-token.yml > ./tmp-cloudflare-token.yml
+          envsubst < ./k8s/minio/minio-values.yml > ./tmp-minio-values.yml
       
       # Apply Cloudflare API token secret
       - name: Apply Cloudflare API Token Secret
@@ -87,7 +91,38 @@ jobs:
           helm upgrade --install longhorn longhorn/longhorn \
             --namespace longhorn-system \
             --create-namespace \
-            --version 1.10.1  
+            --version 1.10.1 
+      
+      # Add MinIO Helm repo
+      - name: Add MinIO Helm repo
+        run: |
+          helm repo add minio https://charts.min.io
+          helm repo update
+      
+      # Check Minio namespace existence or create it
+      - name: Ensure MinIO namespace exists
+        run: |
+          kubectl get namespace minio || kubectl create namespace minio
+      
+      # Deploy MinIO via Helm
+      - name: Deploy MinIO via Helm
+        run: |
+          helm upgrade --install minio minio/minio \
+            -f ./tmp-minio-values.yml \
+            --namespace minio
+      
+      # Deploy Volume Snapshot CRDs and Controller
+      - name: Deploy Volume Snapshot CRDs and Controller
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/client/config/crd/groupsnapshot.storage.k8s.io_volumegroupsnapshotclasses.yaml
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/client/config/crd/groupsnapshot.storage.k8s.io_volumegroupsnapshotcontents.yaml
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/client/config/crd/groupsnapshot.storage.k8s.io_volumegroupsnapshots.yaml
+
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml
 
   deploy-monitoring:
     runs-on: ubuntu-latest
@@ -253,10 +288,11 @@ jobs:
           echo "${{ secrets.CLUSTER_KUBECONFIG }}" > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
       
-      # Add Helm repos
-      - name: Add Helm repos
+      # Add Helm repos for CloudNative Postgres
+      - name: Add Helm repos for cloudnative-pg
         run: |
           helm repo add cnpg https://cloudnative-pg.github.io/charts
+          helm repo update
       
       # Deploy CloudNative Postgres Operator
       - name: Deploy CloudNative Postgres Operator
@@ -264,6 +300,11 @@ jobs:
           helm upgrade --install cloudnative-pg cnpg/cloudnative-pg \
             --namespace database \
             --create-namespace
+
+      # Deploy VolumeSnapshotClass for Longhorn
+      - name: Deploy VolumeSnapshotClass
+        run: |
+          kubectl apply -f ./k8s/databases/postgres/q-flow/volumeSnapshotClass.yml -n database
       
       # Deploy Postgres Database Clusters
       - name: Deploy Postgres Clusters
@@ -271,8 +312,14 @@ jobs:
           kubectl apply -f ./k8s/databases/postgres/ubutumwa-bugufi/cluster.yml -n database
           kubectl apply -f ./k8s/databases/postgres/q-flow/cluster.yml -n database
       
+      # Deploy Postgres Backups
+      - name: Deploy Postgres Backups
+        run: |
+          kubectl apply -f ./k8s/databases/postgres/ubutumwa-bugufi/backups.yml -n database
+          kubectl apply -f ./k8s/databases/postgres/q-flow/backups.yml -n database
+      
       # Deploy Postgres Databases
       - name: Deploy Postgres Databases
         run: |
-          kubectl apply -f ./k8s/databases/postgres/ubutumwa-bugufi/databases.yml -n database
+          # kubectl apply -f ./k8s/databases/postgres/ubutumwa-bugufi/databases.yml -n database
           kubectl apply -f ./k8s/databases/postgres/q-flow/databases.yml -n database

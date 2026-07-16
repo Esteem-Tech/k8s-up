@@ -1,0 +1,24 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: ubutumwa-bugufi-on-demand-backup
+spec:
+  method: volumeSnapshot
+  online: true
+  cluster:
+    name: ubutumwa-bugufi
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: ubutumwa-bugufi-daily-backup
+  annotations:
+    backup.cnpg.io/volumeSnapshotDeadline: "20"
+spec:
+  schedule: "0 0 0 * * *"
+  backupOwnerReference: self
+  method: volumeSnapshot
+  online: true
+  cluster:
+    name: ubutumwa-bugufi
