@@ -28,5 +28,29 @@ tls:
 console:
   enabled: true
 
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  hosts:
+    - "${MINIO_SUB_DOMAIN}.test.k8s.iradukunda.me"
+  tls:
+    - secretName: ${MINIO_SUB_DOMAIN}-tls-secret
+      hosts:
+        - "${MINIO_SUB_DOMAIN}.test.k8s.iradukunda.me"
+
+consoleIngress:
+  enabled: true
+  ingressClassName: traefik
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  hosts:
+    - "${MINIO_CONSOLE_SUB_DOMAIN}.test.k8s.iradukunda.me"
+  tls:
+    - secretName: ${MINIO_CONSOLE_SUB_DOMAIN}-tls-secret
+      hosts:
+        - "${MINIO_CONSOLE_SUB_DOMAIN}.test.k8s.iradukunda.me"
+
 updateStrategy:
   type: RollingUpdate
