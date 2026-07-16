@@ -1,0 +1,13 @@
+# Dev Database for EPR Application
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: epr-dev
+spec:
+  name: epr-dev
+  owner: EPRUser
+  cluster:
+    name: epr
+  schemas:
+    - name: epr
+      owner: EPRUser

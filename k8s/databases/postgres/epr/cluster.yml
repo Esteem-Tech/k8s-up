@@ -1,0 +1,35 @@
+# Cluster configuration for EPR PostgreSQL database cluster
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: epr
+  namespace: database
+spec:
+  instances: 1
+  storage:
+    size: 10Gi
+    storageClass: longhorn
+
+  postgresql:
+    parameters:
+      shared_buffers: "128MB"
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "300m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+  managed:
+    roles:
+      - name: EPRUser
+        ensure: present
+        superuser: false
+        createdb: true
+        login: true
+
+  # Enable monitoring
+  monitoring:
+    enablePodMonitor: true

@@ -53,6 +53,8 @@ jobs:
           STORAGE_CLASS_NAME: longhorn
           MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
           MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+          MINIO_SUB_DOMAIN: minio
+          MINIO_CONSOLE_SUB_DOMAIN: minio-console
         run: |
           # Install envsubst if missing
           sudo apt-get update && sudo apt-get install -y gettext-base
@@ -65,7 +67,12 @@ jobs:
       - name: Apply Cloudflare API Token Secret
         run: |
           kubectl apply -f ./tmp-cloudflare-token.yml
-      
+
+      # Open the postgres TCP entrypoint on Traefik for exposing dev databases
+      - name: Configure Traefik Postgres entrypoint
+        run: |
+          kubectl apply -f ./k8s/set-up/traefik-postgres-entrypoint.yml
+
       - name: Deploy Cert-Manager
         run: |
           helm upgrade --install cert-manager jetstack/cert-manager \
@@ -311,6 +318,7 @@ jobs:
         run: |
           kubectl apply -f ./k8s/databases/postgres/ubutumwa-bugufi/cluster.yml -n database
           kubectl apply -f ./k8s/databases/postgres/q-flow/cluster.yml -n database
+          kubectl apply -f ./k8s/databases/postgres/epr/cluster.yml -n database
       
       # Deploy Postgres Backups
       - name: Deploy Postgres Backups
@@ -323,3 +331,9 @@ jobs:
         run: |
           # kubectl apply -f ./k8s/databases/postgres/ubutumwa-bugufi/databases.yml -n database
           kubectl apply -f ./k8s/databases/postgres/q-flow/databases.yml -n database
+          kubectl apply -f ./k8s/databases/postgres/epr/databases.yml -n database
+
+      # Deploy EPR dev DB ingress (Traefik IngressRouteTCP)
+      - name: Deploy EPR Dev DB Ingress
+        run: |
+          kubectl apply -f ./k8s/databases/postgres/epr/ingress.yml -n database
