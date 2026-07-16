@@ -25,6 +25,12 @@ metrics:
 tls:
   enabled: false  # set true and provide certs for prod
 
+environment:
+  # MinIO redirects browser requests hitting the API port to <host>:9001 by
+  # default, which isn't reachable through the ingress (only 80/443 are
+  # exposed). Point it at the actual console ingress host instead.
+  MINIO_BROWSER_REDIRECT_URL: "https://${MINIO_CONSOLE_SUB_DOMAIN}.test.k8s.iradukunda.me"
+
 console:
   enabled: true
 
