@@ -1,0 +1,19 @@
+# k3s ships Traefik as a managed HelmChart; this HelmChartConfig patches its
+# values to add a dedicated TCP entrypoint for exposing Postgres clusters via
+# IngressRouteTCP (see k8s/databases/postgres/*/ingress.yml), alongside the
+# default web (80) and websecure (443) entrypoints. Applying this once opens
+# port 5432 on Traefik's LoadBalancer service.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    ports:
+      postgres:
+        port: 5432
+        expose:
+          default: true
+        exposedPort: 5432
+        protocol: TCP
