@@ -13,6 +13,7 @@ spec:
   postgresql:
     parameters:
       shared_buffers: "128MB"
+      ssl_min_protocol_version: "TLSv1.2"
 
   resources:
     requests:
