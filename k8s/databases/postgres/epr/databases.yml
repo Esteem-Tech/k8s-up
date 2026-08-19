@@ -11,3 +11,19 @@ spec:
   schemas:
     - name: epr
       owner: EPRUser
+
+---
+# DEMO Database for EPR Application
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: epr-demo
+spec:
+  name: epr-demo
+  owner: EPRUser
+  cluster:
+    name: epr
+  schemas:
+    - name: epr
+      owner: EPRUser
+
