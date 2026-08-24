@@ -129,6 +129,16 @@ jobs:
           kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml
           kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.4.0/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml
 
+      # MinIO's chart creates Prometheus Operator ServiceMonitor/Probe CRs
+      # (metrics.serviceMonitor.enabled=true), so the monitoring.coreos.com
+      # CRDs must exist before it installs. kube-prometheus-stack normally
+      # registers these, but it runs later in the deploy-monitoring job, so
+      # bootstrap the CRDs here directly via kubectl (server-side apply,
+      # since these CRDs exceed the client-side annotation size limit).
+      - name: Deploy Prometheus Operator CRDs
+        run: |
+          kubectl apply --server-side -f https://github.com/prometheus-operator/prometheus-operator/releases/download/v0.93.1/stripped-down-crds.yaml
+
       # Deploy MinIO via Helm
       - name: Deploy MinIO via Helm
         run: |
@@ -202,11 +212,17 @@ jobs:
             --create-namespace
           
       # Deploy Prometheus + kube-prometheus-stack
+      # crds.enabled=false: the Prometheus Operator CRDs are already
+      # installed directly via kubectl in deploy-core-components (MinIO
+      # needs them before this job runs). Letting this chart manage them
+      # too would fail with a Helm "invalid ownership metadata" error since
+      # it didn't create them.
       - name: Deploy Prometheus Stack
         run: |
           helm upgrade --install prometheus-stack \
             prometheus-community/kube-prometheus-stack \
             -f ./tmp-prometheus-values.yml \
+            --set crds.enabled=false \
             -n monitoring \
             --create-namespace
 
