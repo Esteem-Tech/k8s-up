@@ -62,6 +62,11 @@ jobs:
           envsubst < ./k8s/set-up/letsencrypt-issuer.yml > ./tmp-letsencrypt.yml
           envsubst < ./k8s/secrets/cloudflare-api-token.yml > ./tmp-cloudflare-token.yml
           envsubst < ./k8s/minio/minio-values.yml > ./tmp-minio-values.yml
+
+      # Create namespace for cert-manager
+      - name: Create cert-manager namespace
+        run: |
+          kubectl create namespace cert-manager || echo "Namespace cert-manager already exists"
       
       # Apply Cloudflare API token secret
       - name: Apply Cloudflare API Token Secret
