@@ -115,7 +115,16 @@ jobs:
       - name: Ensure MinIO namespace exists
         run: |
           kubectl get namespace minio || kubectl create namespace minio
-      
+
+      # MinIO's ServiceMonitor/Probe objects are pinned to the "monitoring"
+      # namespace (metrics.serviceMonitor.namespace), which is otherwise
+      # only created later by the deploy-monitoring job's helm
+      # --create-namespace. Create it here too so the MinIO install has
+      # somewhere to put those objects.
+      - name: Ensure monitoring namespace exists
+        run: |
+          kubectl get namespace monitoring || kubectl create namespace monitoring
+
       # Deploy Volume Snapshot CRDs and Controller
       - name: Deploy Volume Snapshot CRDs and Controller
         run: |
