@@ -1,0 +1,47 @@
+# Longhorn Helm values.
+#
+# Before 2026-08-24 Longhorn ran on bare chart defaults, which on this
+# two-node cluster produced three replicas of every volume crammed onto the
+# worker (the control-plane disk sat below the 25% free-space floor) and
+# reported them as "healthy". That is triple the disk cost for zero
+# redundancy, and it is why the worker was 72% overcommitted when the
+# incident hit. See docs/runbooks/post-incident-hardening.md.
+#
+# These values are applied by `helm upgrade --install -f` in every deploy
+# workflow, so they survive redeploys. A `kubectl patch` on a
+# settings.longhorn.io object does not.
+
+persistence:
+  # Governs the `longhorn` StorageClass, i.e. what every NEW PVC gets.
+  # Two nodes -> two replicas. Three can never be placed correctly.
+  defaultClassReplicaCount: 2
+
+defaultSettings:
+  # Fallback for volumes created outside the StorageClass.
+  defaultReplicaCount: 2
+
+  # A disk is unschedulable once free space drops below this percentage of
+  # its maximum. /var/lib/longhorn shares the ROOT filesystem on both
+  # nodes, so "maximum" is the whole 157G root partition and 25% of it
+  # (39.3G) is a floor the control-plane keeps crossing. 20% keeps a real
+  # safety margin for the OS while letting the node accept replicas.
+  # Revisit when Longhorn gets a dedicated disk.
+  storageMinimalAvailablePercentage: 20
+
+  # Hard anti-affinity: a volume's replicas MUST land on different nodes.
+  # The default (soft, true) let Longhorn put all replicas on one node
+  # whenever the other was unavailable and still call the volume healthy,
+  # which is exactly the false comfort that preceded this incident. With
+  # this false, a volume that cannot spread reports `degraded` instead -
+  # the honest state. Degraded volumes still attach and serve I/O.
+  replicaSoftAntiAffinity: false
+
+  # 250 is the chart default and the recovered volumes had hit 249, which is
+  # how two 10Gi volumes came to occupy 28G each. Nothing on this cluster
+  # needs anywhere near that many local snapshots.
+  snapshotMaxCount: 30
+
+  # Longhorn detects replica directories on disk that no Volume CR owns.
+  # Keep auto-deletion OFF. Those orphaned directories were the only reason
+  # this incident was recoverable at all.
+  orphanResourceAutoDeletion: ""

@@ -89,7 +89,8 @@ jobs:
           helm upgrade --install longhorn longhorn/longhorn \
             --namespace longhorn-system \
             --create-namespace \
-            --version 1.10.1  
+            --version 1.10.1 \
+            -f ./k8s/longhorn/values.yml
       
       # Add MinIO Helm repo
       - name: Add MinIO Helm repo
