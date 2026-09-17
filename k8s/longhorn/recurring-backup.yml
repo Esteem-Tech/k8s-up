@@ -1,0 +1,22 @@
+# Nightly off-cluster backup of every Longhorn volume that is not otherwise
+# labelled into a recurring-job group (Vault, SeaweedFS, Grafana, Loki, the
+# CNPG clusters). Exports go to the BackupTarget configured through the
+# chart's defaultBackupStore values - see the "Deploy Longhorn Storage Class"
+# step in the deploy workflows, which only applies this file once a target
+# is set. A backup job with no target would fail every night and page
+# nobody.
+#
+# post-incident-hardening.md, P0 item 3.
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: daily-backup
+  namespace: longhorn-system
+spec:
+  cron: "0 2 * * *"
+  task: backup
+  # "default" = volumes with no recurring-job-group label of their own.
+  groups: ["default"]
+  retain: 14
+  concurrency: 1
+  labels: {}

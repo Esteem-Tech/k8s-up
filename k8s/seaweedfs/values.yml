@@ -1,0 +1,122 @@
+# SeaweedFS Helm values - replaces MinIO (see docs/runbooks/minio-to-seaweedfs.md).
+#
+# MinIO's community edition stopped shipping binaries in Oct 2025 and the
+# repo was archived in Apr 2026; the image we ran (RELEASE.2024-12-18) is
+# frozen and publicly exposed. SeaweedFS is Apache-2.0, actively maintained,
+# and speaks the same S3 API the EPR app already uses.
+#
+# Sized for what this cluster actually stores: one bucket, tens of MB, two
+# nodes. "allInOne" runs master+volume+filer+s3 in ONE pod on ONE Longhorn
+# PVC. Durability comes from Longhorn's 2 replicas + off-cluster backup,
+# exactly as it did for MinIO - not from SeaweedFS' own replication, which
+# would need a 3-node topology to mean anything. If the workload ever grows
+# past what a single volume server handles, split into master/volume/filer
+# StatefulSets then; the data format is the same.
+#
+# Applied with envsubst in the deploy workflows. Variables:
+#   STORAGE_CLASS_NAME, SEAWEEDFS_S3_SUB_DOMAIN, SEAWEEDFS_ADMIN_SUB_DOMAIN,
+#   SEAWEEDFS_ADMIN_UI_PASSWORD
+
+global:
+  seaweedfs:
+    monitoring:
+      # ServiceMonitor in the release namespace. kube-prometheus-stack is
+      # configured with serviceMonitorSelectorNilUsesHelmValues: false, so it
+      # scrapes every namespace and needs no extra labels.
+      enabled: true
+
+# The three-tier components are off; allInOne below replaces all of them.
+master:
+  enabled: false
+volume:
+  enabled: false
+filer:
+  enabled: false
+
+allInOne:
+  enabled: true
+  replicas: 1
+  # Single replica on an RWO volume: Recreate, never RollingUpdate, or the
+  # new pod deadlocks waiting for a PVC the old pod still holds.
+  updateStrategy:
+    type: Recreate
+
+  s3:
+    enabled: true
+    # Identities and their bucket-scoped permissions live in a Secret we
+    # render from k8s/secrets/seaweedfs-s3-config.yml, not in chart-generated
+    # credentials, so the EPR app gets a key limited to its own bucket.
+    enableAuth: true
+    existingConfigSecret: seaweedfs-s3-config
+    # Idempotent: the post-install hook skips buckets that already exist.
+    createBuckets:
+      - name: epr-documents
+        anonymousRead: false
+
+  data:
+    type: persistentVolumeClaim
+    size: 15Gi
+    storageClass: ${STORAGE_CLASS_NAME}
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Top-level s3 stays disabled (allInOne serves it) but its ingress block is
+# what the chart uses for the allInOne S3 endpoint.
+s3:
+  enabled: false
+  ingress:
+    enabled: true
+    className: traefik
+    host: "${SEAWEEDFS_S3_SUB_DOMAIN}.test.k8s.iradukunda.me"
+    path: /
+    pathType: Prefix
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt
+    tls:
+      - secretName: ${SEAWEEDFS_S3_SUB_DOMAIN}-tls-secret
+        hosts:
+          - "${SEAWEEDFS_S3_SUB_DOMAIN}.test.k8s.iradukunda.me"
+
+# Web UI (bucket browser, users, cluster status) - the MinIO console
+# replacement. Talks to the allInOne master/filer in-cluster.
+admin:
+  enabled: true
+  replicas: 1
+  # The chart derives the master address from master.* only; with the
+  # three-tier master disabled it must be told where allInOne's master is.
+  # <release>-all-in-one is the Service the chart creates for allInOne.
+  masters: seaweedfs-all-in-one.seaweedfs:9333
+  secret:
+    adminUser: admin
+    adminPassword: "${SEAWEEDFS_ADMIN_UI_PASSWORD}"
+  # Persist the admin's own config (maintenance schedules etc.) - otherwise
+  # it is in-memory and lost on every restart.
+  data:
+    type: persistentVolumeClaim
+    size: 1Gi
+    storageClass: ${STORAGE_CLASS_NAME}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
+  ingress:
+    enabled: true
+    className: traefik
+    host: "${SEAWEEDFS_ADMIN_SUB_DOMAIN}.test.k8s.iradukunda.me"
+    path: /
+    pathType: Prefix
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt
+    tls:
+      - secretName: ${SEAWEEDFS_ADMIN_SUB_DOMAIN}-tls-secret
+        hosts:
+          - "${SEAWEEDFS_ADMIN_SUB_DOMAIN}.test.k8s.iradukunda.me"

@@ -57,6 +57,13 @@ kubectl -n longhorn-system patch settings.longhorn.io backup-target-credential-s
   --type=merge -p '{"value":"longhorn-backup-secret"}'
 ```
 
+> **Superseded 2026-09-17.** Those two `settings.longhorn.io` objects do not
+> exist on Longhorn 1.10 - the target is a `BackupTarget` CR. It is now set
+> declaratively from the `LONGHORN_BACKUP_*` GitHub secrets by the "Deploy
+> Longhorn Storage Class" workflow step, which also applies
+> `k8s/longhorn/recurring-backup.yml` (item 3 below). See
+> [minio-to-seaweedfs.md](minio-to-seaweedfs.md#longhorn-off-cluster-backup-done-in-the-same-change).
+
 **2. Add a `type: bak` VolumeSnapshotClass** and point CNPG at it. This is
 the one-line change that turns the existing (broken) CNPG backup config
 into something real:

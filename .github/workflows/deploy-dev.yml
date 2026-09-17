@@ -55,6 +55,13 @@ jobs:
           MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
           MINIO_SUB_DOMAIN: minio
           MINIO_CONSOLE_SUB_DOMAIN: minio-console
+          SEAWEEDFS_ADMIN_ACCESS_KEY: ${{ secrets.SEAWEEDFS_ADMIN_ACCESS_KEY }}
+          SEAWEEDFS_ADMIN_SECRET_KEY: ${{ secrets.SEAWEEDFS_ADMIN_SECRET_KEY }}
+          SEAWEEDFS_EPR_ACCESS_KEY: ${{ secrets.SEAWEEDFS_EPR_ACCESS_KEY }}
+          SEAWEEDFS_EPR_SECRET_KEY: ${{ secrets.SEAWEEDFS_EPR_SECRET_KEY }}
+          SEAWEEDFS_ADMIN_UI_PASSWORD: ${{ secrets.SEAWEEDFS_ADMIN_UI_PASSWORD }}
+          SEAWEEDFS_S3_SUB_DOMAIN: s3
+          SEAWEEDFS_ADMIN_SUB_DOMAIN: s3-admin
         run: |
           # Install envsubst if missing
           sudo apt-get update && sudo apt-get install -y gettext-base
@@ -62,6 +69,8 @@ jobs:
           envsubst < ./k8s/set-up/letsencrypt-issuer.yml > ./tmp-letsencrypt.yml
           envsubst < ./k8s/secrets/cloudflare-api-token.yml > ./tmp-cloudflare-token.yml
           envsubst < ./k8s/minio/minio-values.yml > ./tmp-minio-values.yml
+          envsubst < ./k8s/seaweedfs/values.yml > ./tmp-seaweedfs-values.yml
+          envsubst < ./k8s/secrets/seaweedfs-s3-config.yml > ./tmp-seaweedfs-s3-config.yml
 
       # Create namespace for cert-manager
       - name: Create cert-manager namespace
@@ -97,14 +106,45 @@ jobs:
           helm repo add longhorn https://charts.longhorn.io
           helm repo update
       
-      # Deploy Longhorn Storage Class
+      # Deploy Longhorn Storage Class.
+      #
+      # The LONGHORN_BACKUP_* secrets are optional until an off-cluster S3
+      # bucket exists (post-incident-hardening.md, P0 item 1). Once set they
+      # make Longhorn's "default" BackupTarget declarative and install the
+      # daily RecurringJob. Longhorn >= 1.9 has no `backup-target` Setting to
+      # patch any more; the chart's defaultBackupStore values populate the
+      # BackupTarget CR instead. Leave them unset and this step is a no-op
+      # beyond the plain chart install.
       - name: Deploy Longhorn Storage Class
+        env:
+          LONGHORN_BACKUP_TARGET: ${{ secrets.LONGHORN_BACKUP_TARGET }}
+          LONGHORN_BACKUP_ACCESS_KEY: ${{ secrets.LONGHORN_BACKUP_ACCESS_KEY }}
+          LONGHORN_BACKUP_SECRET_KEY: ${{ secrets.LONGHORN_BACKUP_SECRET_KEY }}
+          LONGHORN_BACKUP_ENDPOINT: ${{ secrets.LONGHORN_BACKUP_ENDPOINT }}
         run: |
+          BACKUP_ARGS=""
+          if [ -n "$LONGHORN_BACKUP_TARGET" ]; then
+            kubectl create namespace longhorn-system --dry-run=client -o yaml | kubectl apply -f -
+            ENDPOINT_ARG=""
+            [ -n "$LONGHORN_BACKUP_ENDPOINT" ] && ENDPOINT_ARG="--from-literal=AWS_ENDPOINTS=$LONGHORN_BACKUP_ENDPOINT"
+            kubectl -n longhorn-system create secret generic longhorn-backup-secret \
+              --from-literal=AWS_ACCESS_KEY_ID="$LONGHORN_BACKUP_ACCESS_KEY" \
+              --from-literal=AWS_SECRET_ACCESS_KEY="$LONGHORN_BACKUP_SECRET_KEY" \
+              $ENDPOINT_ARG \
+              --dry-run=client -o yaml | kubectl apply -f -
+            BACKUP_ARGS="--set defaultBackupStore.backupTarget=$LONGHORN_BACKUP_TARGET --set defaultBackupStore.backupTargetCredentialSecret=longhorn-backup-secret"
+          fi
+
           helm upgrade --install longhorn longhorn/longhorn \
             --namespace longhorn-system \
             --create-namespace \
             --version 1.10.1 \
-            -f ./k8s/longhorn/values.yml
+            -f ./k8s/longhorn/values.yml \
+            $BACKUP_ARGS
+
+          if [ -n "$LONGHORN_BACKUP_TARGET" ]; then
+            kubectl apply -f ./k8s/longhorn/recurring-backup.yml
+          fi
       
       # Add MinIO Helm repo
       - name: Add MinIO Helm repo
@@ -155,6 +195,35 @@ jobs:
           helm upgrade --install minio minio/minio \
             -f ./tmp-minio-values.yml \
             --namespace minio
+
+      # SeaweedFS replaces MinIO, whose community edition is archived (see
+      # docs/runbooks/minio-to-seaweedfs.md). Both run side by side until the
+      # EPR app is cut over; the MinIO steps above are removed after that.
+      - name: Add SeaweedFS Helm repo
+        run: |
+          helm repo add seaweedfs https://seaweedfs.github.io/seaweedfs/helm
+          helm repo update
+
+      - name: Ensure SeaweedFS namespace exists
+        run: |
+          kubectl get namespace seaweedfs || kubectl create namespace seaweedfs
+
+      # The S3 gateway reads its identities file once at start-up, so a
+      # changed secret (key rotation) only takes effect after a restart.
+      - name: Apply SeaweedFS S3 identities secret
+        run: |
+          result=$(kubectl apply -f ./tmp-seaweedfs-s3-config.yml)
+          echo "$result"
+          case "$result" in
+            *configured*) kubectl -n seaweedfs rollout restart deployment/seaweedfs-all-in-one 2>/dev/null || true ;;
+          esac
+
+      - name: Deploy SeaweedFS via Helm
+        run: |
+          helm upgrade --install seaweedfs seaweedfs/seaweedfs \
+            --version 4.47.0 \
+            -f ./tmp-seaweedfs-values.yml \
+            --namespace seaweedfs
 
   deploy-monitoring:
     runs-on: ubuntu-latest
