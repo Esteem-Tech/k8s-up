@@ -82,7 +82,10 @@ jobs:
         run: |
           kubectl apply -f ./tmp-cloudflare-token.yml
 
-      # Open the postgres TCP entrypoint on Traefik for exposing dev databases
+      # Open the postgres TCP entrypoint on Traefik for exposing dev databases.
+      # The file must stay identical to the node's
+      # /var/lib/rancher/k3s/server/manifests/traefik-config.yaml, which k3s
+      # re-applies on every restart (see header of the file).
       - name: Configure Traefik Postgres entrypoint
         run: |
           kubectl apply -f ./k8s/set-up/traefik-postgres-entrypoint.yml

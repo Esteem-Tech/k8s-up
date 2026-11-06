@@ -1,8 +1,20 @@
 # k3s ships Traefik as a managed HelmChart; this HelmChartConfig patches its
-# values to add a dedicated TCP entrypoint for exposing Postgres clusters via
-# IngressRouteTCP (see k8s/databases/postgres/*/ingress.yml), alongside the
-# default web (80) and websecure (443) entrypoints. Applying this once opens
-# port 5432 on Traefik's LoadBalancer service.
+# values. It does two things:
+#   1. redirects HTTP (web) to HTTPS (websecure)
+#   2. adds a dedicated TCP entrypoint for exposing Postgres clusters via
+#      IngressRouteTCP (see k8s/databases/postgres/*/ingress.yml). This opens
+#      port 5432 on Traefik's LoadBalancer service.
+#
+# IMPORTANT: on the node, k3s also owns a HelmChartConfig named `traefik` from
+# /var/lib/rancher/k3s/server/manifests/traefik-config.yaml (Addon
+# `traefik-config`) and re-applies that file on every k3s start, overwriting
+# anything applied with kubectl. The two MUST have identical `valuesContent`,
+# otherwise a restart (e.g. after a power cut) silently drops the postgres
+# entrypoint and apps get "P1001: Can't reach database server".
+#
+# To (re)provision the node, copy this file over the manifest:
+#   sudo cp traefik-postgres-entrypoint.yml \
+#     /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
 metadata:
@@ -10,6 +22,16 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
+    entryPoints:
+      web:
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
+              permanent: true
+      websecure:
+        address: ":443"
     ports:
       postgres:
         port: 5432

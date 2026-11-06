@@ -1,6 +1,6 @@
 # MinIO → SeaweedFS migration
 
-Written 2026-09-17. Status: **code merged, migration not yet executed.**
+Written 2026-09-17. Status: **steps 0-3 done 2026-09-18 - the EPR app is on SeaweedFS. MinIO is still running; freeze/remove it per step 4.**
 Tick the boxes as you go.
 
 ## Why
@@ -28,7 +28,7 @@ Inventory taken 2026-09-17 on the live cluster:
 | | |
 |---|---|
 | Buckets | one: `epr-documents` (`applications/`, `letters/`) |
-| Objects | 49, **35 MB** total |
+| Objects | 61, **35 MB** total |
 | IAM | 3 users, 2 service accounts (one of these is what the EPR app uses) |
 | In-cluster consumers | **none** - the EPR app talks to the public ingress |
 | Storage | 2 × 15Gi Longhorn PVCs (`export-minio-0/1`), erasure-coded pair |
@@ -118,6 +118,7 @@ the cluster exactly as the EPR app will see it.
 type = s3
 provider = Minio
 endpoint = https://minio.test.k8s.iradukunda.me
+region = kigali          # MinIO was deployed with this region; SigV4 signs it
 access_key_id = <MINIO_ACCESS_KEY>
 secret_access_key = <MINIO_SECRET_KEY>
 
@@ -138,8 +139,10 @@ rclone check minio:epr-documents sw:epr-documents
 # If check reports hash mismatches on larger files (multipart ETags differ
 # between implementations) but sizes agree, that is expected:
 rclone check minio:epr-documents sw:epr-documents --size-only
-rclone size sw:epr-documents            # expect 49 objects / ~35 MB
+rclone size sw:epr-documents            # expect 61 objects / ~35 MB
 ```
+
+Done 2026-09-18: `0 differences found, 61 matching files`.
 
 - [ ] Prove the scoped `epr` identity works and is actually scoped. Add a
       third remote `[epr]` with the EPR keys and:
@@ -147,8 +150,14 @@ rclone size sw:epr-documents            # expect 49 objects / ~35 MB
 ```bash
 rclone ls epr:epr-documents | head            # works
 rclone mkdir epr:should-fail                  # must be denied
-echo hi | rclone rcat epr:epr-documents/_probe.txt && rclone delete epr:epr-documents/_probe.txt   # write+delete ok
+echo hi | rclone rcat --s3-no-check-bucket epr:epr-documents/_probe.txt && rclone delete epr:epr-documents/_probe.txt   # write+delete ok
 ```
+
+`--s3-no-check-bucket` is needed because rclone does a `HeadBucket` before
+every upload; a bucket-scoped SeaweedFS identity gets 403 on that and
+rclone then tries `CreateBucket`, which is (correctly) denied. Real SDKs do
+a plain `PutObject` and never hit this. Verified 2026-09-18: list works,
+mkdir denied, write+delete ok.
 
 ## 3. Cut the EPR app over
 
