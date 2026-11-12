@@ -57,6 +57,7 @@ This repository provides a **100% open-source**, **GitOps-driven** solution to a
 | **Log Aggregation** | Centralized logging solution | Loki + Promtail |
 | **Alerting** | Intelligent alerting & notifications | Grafana Alerting + Slack |
 | **Service Discovery** | Automatic service monitoring | Prometheus Operator |
+| **Uptime Monitoring** | External uptime checks for client-hosted services (VPSs) | Uptime Kuma |
 
 ### **💾 Database Solutions**
 | Component | Purpose | Technology |

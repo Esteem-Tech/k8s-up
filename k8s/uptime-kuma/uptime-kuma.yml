@@ -1,0 +1,124 @@
+# Uptime Kuma - black-box uptime checks for services hosted on client VPSs
+# (not on this cluster). OpenObserve on each VPS covers disk/memory/CPU;
+# Kuma is the outside view that still fires when a VPS, or OpenObserve
+# itself, is down.
+#
+# Monitors are created by hand in the UI and live in /app/data. That PVC
+# carries no recurring-job-group label, so Longhorn's "default" daily-backup
+# RecurringJob (k8s/longhorn/recurring-backup.yml) exports it off-cluster.
+#
+# Rendered with envsubst: ${UPTIME_KUMA_HOST}.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: uptime-kuma
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: uptime-kuma-data
+  namespace: uptime-kuma
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 4Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uptime-kuma
+  namespace: uptime-kuma
+  labels:
+    app: uptime-kuma
+spec:
+  replicas: 1 # Kuma is single-instance; a second pod would corrupt the DB.
+  strategy:
+    type: Recreate # RWO volume: old pod must release it before the new one starts.
+  selector:
+    matchLabels:
+      app: uptime-kuma
+  template:
+    metadata:
+      labels:
+        app: uptime-kuma
+    spec:
+      containers:
+        - name: uptime-kuma
+          image: louislam/uptime-kuma:2.5.11
+          ports:
+            - name: http
+              containerPort: 3001
+          env:
+            - name: TZ
+              value: Africa/Kigali
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          startupProbe:
+            # First boot / DB migrations after an upgrade can take a while.
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 15
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: uptime-kuma-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: uptime-kuma
+  namespace: uptime-kuma
+spec:
+  selector:
+    app: uptime-kuma
+  ports:
+    - name: http
+      port: 3001
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: uptime-kuma
+  namespace: uptime-kuma
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - ${UPTIME_KUMA_HOST}
+      secretName: uptime-kuma-tls
+  rules:
+    - host: ${UPTIME_KUMA_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: uptime-kuma
+                port:
+                  number: 3001
