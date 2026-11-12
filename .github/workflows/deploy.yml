@@ -273,6 +273,18 @@ jobs:
             -f ./tmp-loki-values.yml \
             -n monitoring
 
+      # Uptime Kuma: outside-in uptime checks for client VPSs. Only runs in
+      # environments that define the UPTIME_KUMA_HOST variable, so one
+      # instance owns the hostname and its certificate.
+      - name: Deploy Uptime Kuma
+        if: ${{ vars.UPTIME_KUMA_HOST != '' }}
+        env:
+          UPTIME_KUMA_HOST: ${{ vars.UPTIME_KUMA_HOST }}
+        run: |
+          envsubst '${UPTIME_KUMA_HOST}' < ./k8s/uptime-kuma/uptime-kuma.yml > ./tmp-uptime-kuma.yml
+          kubectl apply -f ./tmp-uptime-kuma.yml
+          kubectl -n uptime-kuma rollout status deployment/uptime-kuma --timeout=5m
+
   deploy-vault:
     runs-on: ubuntu-latest
     environment: production
